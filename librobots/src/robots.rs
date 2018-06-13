@@ -19,11 +19,13 @@ impl<'a> Robots<'a> {
         }
     }
 
+    pub fn size(&self) -> Vec2 { self.size }
+
     pub fn at(&self, pos: Vec2) -> CellStates {
-        if pos == self.player.pos() { CellStates::Player() }
-        for enemy in self.enemies.into_iter() {
-            if pos == enemy.pos() { CellStates::Enemy(enemy.id())}
+        if pos == self.player.pos() { return CellStates::Player(); }
+        for i in 0..self.enemies.len() {
+            if pos == self.enemies[i].pos() { return CellStates::Enemy(self.enemies[i].id()); }
         }
-        CellStates::Empty()
+        return CellStates::Empty();
     }
 }

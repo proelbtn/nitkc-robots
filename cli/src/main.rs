@@ -1,6 +1,6 @@
 extern crate librobots;
 
-use librobots::{Robots, PlayerTrait, EnemyTrait, Operations, Vec2};
+use librobots::{Robots, PlayerTrait, EnemyTrait, Operations, CellStates, Vec2};
 
 struct SimplePlayer {
     pos: Vec2
@@ -94,8 +94,27 @@ impl EnemyTrait for SimpleEnemy {
     }
 }
 
+fn display(g: &Robots) {
+    let (width, height) = (g.size().x, g.size().y);
+
+    println!("{}", "#".repeat((width + 2) as usize));
+    for y in 0..height {
+        print!("#");
+        for x in 0..width {
+            match g.at(Vec2::new(x, y)) {
+                CellStates::Player() => { print!("P"); }
+                CellStates::Enemy(_) => { print!("*"); }
+                CellStates::Empty() => { print!(" "); }
+                _ => ()
+            }
+        }
+        print!("#\n");
+    }
+    println!("{}", "#".repeat((width + 2) as usize));
+}
+
 fn main() {
-    let size = Vec2::new(25, 15);
+    let size = Vec2::new(45, 15);
     let mut p: Box<PlayerTrait> = Box::new(SimplePlayer::new(size.x / 2, size.y / 2));
     let mut es: Vec<Box<EnemyTrait>> = Vec::new();
     for n in 0..5 {
@@ -103,4 +122,6 @@ fn main() {
     }
 
     let g = Robots::new(size, &mut p, &mut es);
+
+    display(&g);
 }

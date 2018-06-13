@@ -19,7 +19,7 @@ pub enum GameStates {
 
 pub enum CellStates {
     Player(),
-    Enemy(),
+    Enemy(u64),
     Scrap(),
     Empty(),
 }
