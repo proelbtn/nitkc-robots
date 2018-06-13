@@ -1,6 +1,6 @@
 use std::ops::{Add, Sub};
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq)]
 pub struct Vec2 {
     pub x: u64,
     pub y: u64,

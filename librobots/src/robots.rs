@@ -1,4 +1,4 @@
-use {PlayerTrait, EnemyTrait, Operations, Vec2};
+use {PlayerTrait, EnemyTrait, Operations, CellStates, Vec2};
 
 pub struct Robots<'a> {
     size: Vec2,
@@ -17,5 +17,13 @@ impl<'a> Robots<'a> {
         for enemy in self.enemies.into_iter() {
             enemy.next(self.size, self.player);
         }
+    }
+
+    pub fn at(&self, pos: Vec2) -> CellStates {
+        if pos == self.player.pos() { CellStates::Player() }
+        for enemy in self.enemies.into_iter() {
+            if pos == enemy.pos() { CellStates::Enemy(enemy.id())}
+        }
+        CellStates::Empty()
     }
 }
