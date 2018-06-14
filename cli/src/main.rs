@@ -1,7 +1,7 @@
 extern crate librobots;
 
 use std::io::Write;
-use librobots::{Robots, PlayerTrait, EnemyTrait, Operations, CellStates, Vec2};
+use librobots::{Robots, PlayerTrait, EnemyTrait, Operations, GameStatus, CellStatus, Vec2};
 
 struct SimplePlayer {
     pos: Vec2
@@ -103,9 +103,9 @@ fn display(g: &Robots) {
         print!("#");
         for x in 0..width {
             match g.at(Vec2::new(x, y)) {
-                CellStates::Player() => { print!("P"); }
-                CellStates::Enemy(_) => { print!("*"); }
-                CellStates::Empty() => { print!(" "); }
+                CellStatus::Player() => { print!("P"); }
+                CellStatus::Enemy(_) => { print!("*"); }
+                CellStatus::Empty() => { print!(" "); }
                 _ => ()
             }
         }
@@ -145,9 +145,11 @@ fn main() {
         es.push(Box::new(SimpleEnemy::new(n, n))); 
     }
 
-    let g = Robots::new(size, &mut p, &mut es);
+    let mut g = Robots::new(size, &mut p, &mut es);
 
-    display(&g);
-
-    let op = get_operation("$ ");
+    while g.status() == GameStatus::InProgress() {
+        display(&g);
+        let op = get_operation("$ ");
+        g.next(op);
+    }
 }

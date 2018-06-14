@@ -11,13 +11,15 @@ pub enum Operations {
     Warp(),
 }
 
-pub enum GameStates {
+#[derive(PartialEq)]
+pub enum GameStatus {
     GameOver(),
     GameClear(),
     InProgress(),
 }
 
-pub enum CellStates {
+#[derive(PartialEq)]
+pub enum CellStatus {
     Player(),
     Enemy(u64),
     Scrap(),

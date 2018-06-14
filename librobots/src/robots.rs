@@ -1,14 +1,15 @@
-use {PlayerTrait, EnemyTrait, Operations, CellStates, Vec2};
+use {PlayerTrait, EnemyTrait, Operations, GameStatus, CellStatus, Vec2};
 
 pub struct Robots<'a> {
     size: Vec2,
     player: &'a mut Box<PlayerTrait>,
     enemies: &'a mut Vec<Box<EnemyTrait>>,
+    scraps: Vec<Vec2>,
 }
 
 impl<'a> Robots<'a> {
     pub fn new(size: Vec2, player: &'a mut Box<PlayerTrait>, enemies: &'a mut Vec<Box<EnemyTrait>>) -> Robots<'a> {
-        Robots { size, player, enemies }
+        Robots { size, player, enemies, scraps: Vec::new() }
     }
 
     pub fn next(&mut self, op: Operations) {
@@ -21,11 +22,15 @@ impl<'a> Robots<'a> {
 
     pub fn size(&self) -> Vec2 { self.size }
 
-    pub fn at(&self, pos: Vec2) -> CellStates {
-        if pos == self.player.pos() { return CellStates::Player(); }
+    pub fn at(&self, pos: Vec2) -> CellStatus {
+        if pos == self.player.pos() { return CellStatus::Player(); }
         for i in 0..self.enemies.len() {
-            if pos == self.enemies[i].pos() { return CellStates::Enemy(self.enemies[i].id()); }
+            if pos == self.enemies[i].pos() { return CellStatus::Enemy(self.enemies[i].id()); }
         }
-        return CellStates::Empty();
+        return CellStatus::Empty();
+    }
+
+    pub fn status(&self) -> GameStatus {
+        return GameStatus::InProgress();
     }
 }
