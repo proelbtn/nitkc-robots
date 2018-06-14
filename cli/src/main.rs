@@ -1,5 +1,6 @@
 extern crate librobots;
 
+use std::io::Write;
 use librobots::{Robots, PlayerTrait, EnemyTrait, Operations, CellStates, Vec2};
 
 struct SimplePlayer {
@@ -113,6 +114,29 @@ fn display(g: &Robots) {
     println!("{}", "#".repeat((width + 2) as usize));
 }
 
+fn get_operation(prompt: &str) -> Operations {
+    loop {
+        let mut s = String::new();
+
+        print!("{}", prompt);
+        std::io::stdout().flush();
+        std::io::stdin().read_line(&mut s);
+
+        match s.trim_right_matches("\n") {
+            "u" | "2" => return Operations::Up(),
+            "m" | "8" => return Operations::Down(),
+            "h" | "4" => return Operations::Left(),
+            "k" | "6" => return Operations::Right(),
+            "y" | "1" => return Operations::UpperLeft(),
+            "i" | "3" => return Operations::UpperRight(),
+            "n" | "7" => return Operations::LowerLeft(),
+            "," | "9" => return Operations::LowerRight(),
+            "j" | "5" => return Operations::Wait(),
+            " " | "o" | "0" => return Operations::Warp(),
+            _ => ()
+        }
+    }
+}
 fn main() {
     let size = Vec2::new(45, 15);
     let mut p: Box<PlayerTrait> = Box::new(SimplePlayer::new(size.x / 2, size.y / 2));
@@ -124,4 +148,6 @@ fn main() {
     let g = Robots::new(size, &mut p, &mut es);
 
     display(&g);
+
+    let op = get_operation("$ ");
 }
