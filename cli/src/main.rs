@@ -142,8 +142,8 @@ fn get_operation(prompt: &str) -> Operations {
             "i" | "3" => return Operations::UpperRight(),
             "n" | "7" => return Operations::LowerLeft(),
             "," | "9" => return Operations::LowerRight(),
-            "j" | "5" => return Operations::Wait(),
-            " " | "o" | "0" => return Operations::Warp(),
+            " " | "o" | "5" => return Operations::Wait(),
+            "j" | "0" => return Operations::Warp(),
             _ => ()
         }
     }
@@ -151,7 +151,8 @@ fn get_operation(prompt: &str) -> Operations {
 
 fn new_enemies(p: Vec2, s: Vec2, n: usize) -> Vec<Box<EnemyTrait>> {
     let mut v: Vec<Box<EnemyTrait>> = Vec::new();
-    for _ in 0..n {        loop {
+    for _ in 0..n {        
+        loop {
             let x = random::<u64>() % s.x;
             let y = random::<u64>() % s.y;
             let pos = Vec2::new(x, y);
