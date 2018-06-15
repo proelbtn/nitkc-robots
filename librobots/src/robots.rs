@@ -52,6 +52,9 @@ impl<'a> Robots<'a> {
 
     pub fn status(&self) -> GameStatus {
         if self.enemies.len() == 0 { return GameStatus::GameClear(); }
+        for enemy in self.enemies.iter() {
+            if self.player.pos() == enemy.pos() { return GameStatus::GameOver(); }
+        }
         return GameStatus::InProgress();
     }
 }
