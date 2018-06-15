@@ -18,6 +18,26 @@ impl<'a> Robots<'a> {
         for enemy in self.enemies.into_iter() {
             enemy.next(self.size, self.player);
         }
+
+        for n in 0..self.enemies.len() {
+            let pos = self.enemies[n].pos();
+            let mut flag = false;
+            for m in (n + 1)..self.enemies.len() {
+                flag |= pos == self.enemies[m].pos();
+            }
+            if flag { self.scraps.push(pos) }
+        }
+
+        for n in 0..self.scraps.len() {
+            let pos = self.scraps[n];
+            let dups = self.enemies.into_iter().position(|e| pos == e.pos());
+            match dups {
+                Some(v) => {
+                    self.enemies.remove(v);
+                },
+                None => ()
+            }
+        }
     }
 
     pub fn size(&self) -> Vec2 { self.size }
@@ -31,6 +51,7 @@ impl<'a> Robots<'a> {
     }
 
     pub fn status(&self) -> GameStatus {
+        if self.enemies.len() == 0 { return GameStatus::GameClear(); }
         return GameStatus::InProgress();
     }
 }
