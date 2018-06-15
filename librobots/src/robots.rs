@@ -44,8 +44,8 @@ impl<'a> Robots<'a> {
 
     pub fn at(&self, pos: Vec2) -> CellStatus {
         if pos == self.player.pos() { return CellStatus::Player(); }
-        for i in 0..self.enemies.len() {
-            if pos == self.enemies[i].pos() { return CellStatus::Enemy(self.enemies[i].id()); }
+        for enemy in self.enemies.iter() {
+            if pos == enemy.pos() { return CellStatus::Enemy(enemy.id()); }
         }
         return CellStatus::Empty();
     }
