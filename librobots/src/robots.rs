@@ -13,10 +13,10 @@ impl<'a> Robots<'a> {
     }
 
     pub fn next(&mut self, op: Operations) {
-        self.player.next(self.size, op, self.enemies);
+        self.player.next(self.size, op, self.enemies, &self.scraps);
 
         for enemy in self.enemies.into_iter() {
-            enemy.next(self.size, self.player);
+            enemy.next(self.size, self.player, &self.scraps);
         }
 
         for n in 0..self.enemies.len() {

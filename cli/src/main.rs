@@ -16,7 +16,7 @@ impl SimplePlayer {
 impl PlayerTrait for SimplePlayer {
     fn pos(&self) -> Vec2 { self.pos }
 
-    fn next(&mut self, size: Vec2, op: Operations, enemies: &Vec<Box<EnemyTrait>>) {
+    fn next(&mut self, size: Vec2, op: Operations, enemies: &Vec<Box<EnemyTrait>>, scraps: &Vec<Vec2>) {
         let upper_bound = self.pos.y == 0;
         let lower_bound = self.pos.y == size.y;
         let left_bound = self.pos.x == 0;
@@ -81,7 +81,7 @@ impl EnemyTrait for SimpleEnemy {
     fn id(&self) -> u64 { 1 }
     fn pos(&self) -> Vec2 { self.pos }
 
-    fn next(&mut self, size: Vec2, player: &Box<PlayerTrait>) {
+    fn next(&mut self, size: Vec2, player: &Box<PlayerTrait>, scraps: &Vec<Vec2>) {
         let (px, py) = (player.pos().x, player.pos().y);
         let mut pos = self.pos;
         let (ex, ey) = (Vec2::new(1, 0), Vec2::new(0, 1));
