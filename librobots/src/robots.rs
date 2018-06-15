@@ -30,12 +30,14 @@ impl<'a> Robots<'a> {
 
         for n in 0..self.scraps.len() {
             let pos = self.scraps[n];
-            let dups = self.enemies.into_iter().position(|e| pos == e.pos());
-            match dups {
-                Some(v) => {
-                    self.enemies.remove(v);
-                },
-                None => ()
+            loop {
+                let dups = self.enemies.into_iter().position(|e| pos == e.pos());
+                match dups {
+                    Some(v) => {
+                        self.enemies.remove(v);
+                    },
+                    None => break
+                }
             }
         }
     }
@@ -44,6 +46,9 @@ impl<'a> Robots<'a> {
 
     pub fn at(&self, pos: Vec2) -> CellStatus {
         if pos == self.player.pos() { return CellStatus::Player(); }
+        for scrap in self.scraps.iter() {
+            if pos == *scrap { return CellStatus::Scrap(); }
+        }
         for enemy in self.enemies.iter() {
             if pos == enemy.pos() { return CellStatus::Enemy(enemy.id()); }
         }
