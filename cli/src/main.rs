@@ -61,6 +61,15 @@ impl PlayerTrait for SimplePlayer {
                 pos = self.pos + ex + ey;
             }
             Operations::Warp() => {
+                loop {
+                    let x = random::<u64>() % size.x;
+                    let y = random::<u64>() % size.y;
+                    pos = Vec2::new(x, y);
+                    for enemy in enemies.iter() {
+                        if enemy.pos() == pos { continue; }
+                    }
+                    break;
+                }
             }
             _ => ()
         }
@@ -142,8 +151,7 @@ fn get_operation(prompt: &str) -> Operations {
 
 fn new_enemies(p: Vec2, s: Vec2, n: usize) -> Vec<Box<EnemyTrait>> {
     let mut v: Vec<Box<EnemyTrait>> = Vec::new();
-    for _ in 0..n {
-        loop {
+    for _ in 0..n {        loop {
             let x = random::<u64>() % s.x;
             let y = random::<u64>() % s.y;
             let pos = Vec2::new(x, y);
