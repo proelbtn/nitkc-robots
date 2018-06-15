@@ -1,7 +1,9 @@
 extern crate librobots;
+extern crate rand;
 
 use std::io::Write;
 use librobots::{Robots, PlayerTrait, EnemyTrait, Operations, GameStatus, CellStatus, Vec2};
+use rand::prelude::{random};
 
 struct SimplePlayer {
     pos: Vec2
@@ -98,20 +100,20 @@ impl EnemyTrait for SimpleEnemy {
 fn display(g: &Robots) {
     let (width, height) = (g.size().x, g.size().y);
 
-    println!("{}", "#".repeat((width + 2) as usize));
+    println!("+{}+", "-".repeat(width as usize));
     for y in 0..height {
-        print!("#");
+        print!("|");
         for x in 0..width {
             match g.at(Vec2::new(x, y)) {
-                CellStatus::Player() => { print!("P"); }
-                CellStatus::Enemy(_) => { print!("*"); }
+                CellStatus::Player() => { print!("@"); }
+                CellStatus::Enemy(_) => { print!("+"); }
                 CellStatus::Empty() => { print!(" "); }
-                _ => ()
+                CellStatus::Scrap() => { print!("*")}
             }
         }
-        print!("#\n");
+        println!("|");
     }
-    println!("{}", "#".repeat((width + 2) as usize));
+    println!("+{}+", "-".repeat(width as usize));
 }
 
 fn get_operation(prompt: &str) -> Operations {
@@ -137,19 +139,47 @@ fn get_operation(prompt: &str) -> Operations {
         }
     }
 }
+
+fn new_enemies(p: Vec2, s: Vec2, n: usize) -> Vec<Box<EnemyTrait>> {
+    let mut v: Vec<Box<EnemyTrait>> = Vec::new();
+    for _ in 0..n {
+        loop {
+            let x = random::<u64>() % s.x;
+            let y = random::<u64>() % s.y;
+            let pos = Vec2::new(x, y);
+            if p == pos { continue; }
+            for enemy in v.iter() {
+                if enemy.pos() == pos { continue; }
+            }
+            v.push(Box::new(SimpleEnemy::new(x, y))); 
+            break;
+        }
+    }
+    return v;
+}
+
+
 fn main() {
     let size = Vec2::new(45, 15);
-    let mut p: Box<PlayerTrait> = Box::new(SimplePlayer::new(size.x / 2, size.y / 2));
-    let mut es: Vec<Box<EnemyTrait>> = Vec::new();
-    for n in 0..5 {
-        es.push(Box::new(SimpleEnemy::new(n, n))); 
-    }
+    let mut level = 1;
 
-    let mut g = Robots::new(size, &mut p, &mut es);
+    loop {
+        let mut p: Box<PlayerTrait> = Box::new(SimplePlayer::new(size.x / 2, size.y / 2));
+        let mut es: Vec<Box<EnemyTrait>> = new_enemies(p.pos(), size, std::cmp::min(5 * level, 40));
+        let mut g = Robots::new(size, &mut p, &mut es);
 
-    while g.status() == GameStatus::InProgress() {
-        display(&g);
-        let op = get_operation("$ ");
-        g.next(op);
+        while g.status() == GameStatus::InProgress() {
+            display(&g);
+            let op = get_operation("$ ");
+            g.next(op);
+        }
+
+        match g.status() {
+            GameStatus::GameClear() => {
+            },
+            GameStatus::GameOver() => {
+            },
+            _ => panic!("unreachable sequence"),
+        }
     }
 }

@@ -5,3 +5,4 @@ authors = ["proelbtn <proelbtn@users.noreply.github.com>"]
 
 [dependencies]
 librobots = { path = "../librobots" }
+rand = "0.5"
