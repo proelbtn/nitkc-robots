@@ -18,46 +18,46 @@ impl SimplePlayer {
 impl PlayerTrait for SimplePlayer {
     fn pos(&self) -> Vec2 { self.pos }
 
-    fn next(&mut self, size: Vec2, op: Operations, enemies: &Vec<Box<EnemyTrait>>, scraps: &Vec<Vec2>) {
+    fn next(&mut self, size: Vec2, op: Operations, enemies: &Vec<Box<EnemyTrait>>, scraps: &Vec<Vec2>) -> Result<(), ()> {
         let upper_bound = self.pos.y == 0;
-        let lower_bound = self.pos.y == size.y;
+        let lower_bound = self.pos.y == size.y - 1;
         let left_bound = self.pos.x == 0;
-        let right_bound = self.pos.x == size.x;
+        let right_bound = self.pos.x == size.x - 1;
 
         let mut pos = self.pos;
         let (ex, ey) = (Vec2::new(1, 0), Vec2::new(0, 1));
 
         match op {
             Operations::Up() => {
-                if upper_bound { return; }
+                if upper_bound { return Err(()); }
                 pos = self.pos - ey;
             }
             Operations::Down() => {
-                if upper_bound { return; }
+                if lower_bound { return Err(()); }
                 pos = self.pos + ey;
             }
             Operations::Left() => {
-                if upper_bound { return; }
+                if left_bound { return Err(()); }
                 pos = self.pos - ex;
             }
             Operations::Right() => {
-                if upper_bound { return; }
+                if right_bound { return Err(()); }
                 pos = self.pos + ex;
             }
             Operations::UpperLeft() => {
-                if upper_bound { return; }
+                if upper_bound || left_bound { return Err(()); }
                 pos = self.pos - ex - ey;
             }
             Operations::UpperRight() => {
-                if upper_bound { return; }
+                if upper_bound || right_bound { return Err(()); }
                 pos = self.pos + ex - ey;
             }
             Operations::LowerLeft() => {
-                if upper_bound { return; }
+                if lower_bound || left_bound { return Err(()); }
                 pos = self.pos - ex + ey;
             }
             Operations::LowerRight() => {
-                if upper_bound { return; }
+                if lower_bound || right_bound { return Err(()); }
                 pos = self.pos + ex + ey;
             }
             Operations::Warp() => {
@@ -74,7 +74,16 @@ impl PlayerTrait for SimplePlayer {
             _ => ()
         }
 
+        for enemy in enemies.iter() {
+            if pos == enemy.pos() { return Err(()); }
+        }
+
+        for scrap in scraps.iter() {
+            if pos == *scrap { return Err(()); }
+        }
+
         self.pos = pos;
+        Ok(())
     }
 }
 
@@ -92,7 +101,7 @@ impl EnemyTrait for SimpleEnemy {
     fn id(&self) -> u64 { 1 }
     fn pos(&self) -> Vec2 { self.pos }
 
-    fn next(&mut self, size: Vec2, player: &Box<PlayerTrait>, scraps: &Vec<Vec2>) {
+    fn next(&mut self, size: Vec2, player: &Box<PlayerTrait>, scraps: &Vec<Vec2>) -> Result<(), ()> {
         let (px, py) = (player.pos().x, player.pos().y);
         let mut pos = self.pos;
         let (ex, ey) = (Vec2::new(1, 0), Vec2::new(0, 1));
@@ -103,6 +112,8 @@ impl EnemyTrait for SimpleEnemy {
         if py > self.pos.y { pos = pos + ey; }
 
         self.pos = pos;
+
+        Ok(())
     }
 }
 

@@ -12,8 +12,11 @@ impl<'a> Robots<'a> {
         Robots { size, player, enemies, scraps: Vec::new() }
     }
 
-    pub fn next(&mut self, op: Operations) {
-        self.player.next(self.size, op, self.enemies, &self.scraps);
+    pub fn next(&mut self, op: Operations) -> Result<(), ()> {
+        match self.player.next(self.size, op, self.enemies, &self.scraps) {
+            Err(v) => return Err(v),
+            _ => (),
+        }
 
         for enemy in self.enemies.into_iter() {
             enemy.next(self.size, self.player, &self.scraps);
@@ -40,6 +43,7 @@ impl<'a> Robots<'a> {
                 }
             }
         }
+        Ok(())
     }
 
     pub fn size(&self) -> Vec2 { self.size }
