@@ -171,10 +171,14 @@ fn new_enemies(p: Vec2, s: Vec2, n: usize) -> Vec<Box<EnemyTrait>> {
 fn main() {
     let size = Vec2::new(45, 15);
     let mut level = 1;
+    let mut point = 0;
 
     loop {
         let mut p: Box<PlayerTrait> = Box::new(SimplePlayer::new(size.x / 2, size.y / 2));
-        let mut es: Vec<Box<EnemyTrait>> = new_enemies(p.pos(), size, std::cmp::min(5 * level, 40));
+        let en = std::cmp::min(5 * level, 40);
+        let mut es: Vec<Box<EnemyTrait>> = new_enemies(p.pos(), size, en);
+        let mut status = GameStatus::InProgress();
+
         let mut g = Robots::new(size, &mut p, &mut es);
 
         while g.status() == GameStatus::InProgress() {
@@ -183,10 +187,16 @@ fn main() {
             g.next(op);
         }
 
-        match g.status() {
+        status = g.status();
+
+        match status {
             GameStatus::GameClear() => {
+                point += en + level * 10;
+                level += 1;
             },
             GameStatus::GameOver() => {
+                point += en - g.remaining_enemy();
+                break;
             },
             _ => panic!("unreachable sequence"),
         }

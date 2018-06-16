@@ -62,4 +62,8 @@ impl<'a> Robots<'a> {
         }
         return GameStatus::InProgress();
     }
+
+    pub fn remaining_enemy(&self) -> usize {
+        self.enemies.len()
+    }
 }
