@@ -180,7 +180,7 @@ fn new_enemies(p: Vec2, s: Vec2, n: usize) -> Vec<Box<EnemyTrait>> {
 
 
 fn main() {
-    let size = Vec2::new(45, 15);
+    let size = Vec2::new(75, 25);
     let mut level = 1;
     let mut point = 0;
 
@@ -193,8 +193,9 @@ fn main() {
         let mut g = Robots::new(size, &mut p, &mut es);
 
         while g.status() == GameStatus::InProgress() {
+            let knum = en - g.remaining_enemy();
             display(&g);
-            let op = get_operation("$ ");
+            let op = get_operation(&format!("(level:{} score:{}) : ", level, point + knum));
             g.next(op);
         }
 
