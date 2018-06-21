@@ -1,25 +1,25 @@
 use {PlayerTrait, EnemyTrait, Operations, GameStatus, CellStatus, Vec2};
 
-pub struct Robots<'a> {
+pub struct Robots {
     size: Vec2,
-    player: &'a mut Box<PlayerTrait>,
-    enemies: &'a mut Vec<Box<EnemyTrait>>,
+    player: Box<PlayerTrait>,
+    enemies: Vec<Box<EnemyTrait>>,
     scraps: Vec<Vec2>,
 }
 
-impl<'a> Robots<'a> {
-    pub fn new(size: Vec2, player: &'a mut Box<PlayerTrait>, enemies: &'a mut Vec<Box<EnemyTrait>>) -> Robots<'a> {
+impl Robots {
+    pub fn new(size: Vec2, player: Box<PlayerTrait>, enemies: Vec<Box<EnemyTrait>>) -> Robots {
         Robots { size, player, enemies, scraps: Vec::new() }
     }
 
     pub fn next(&mut self, op: Operations) -> Result<(), ()> {
-        match self.player.next(self.size, op, self.enemies, &self.scraps) {
+        match self.player.next(self.size, op, &self.enemies, &self.scraps) {
             Err(v) => return Err(v),
             _ => (),
         }
 
-        for enemy in self.enemies.into_iter() {
-            enemy.next(self.size, self.player, &self.scraps);
+        for n in 0..self.enemies.len() {
+            self.enemies[n].next(self.size, &self.player, &self.scraps);
         }
 
         for n in 0..self.enemies.len() {
@@ -34,7 +34,7 @@ impl<'a> Robots<'a> {
         for n in 0..self.scraps.len() {
             let pos = self.scraps[n];
             loop {
-                let dups = self.enemies.into_iter().position(|e| pos == e.pos());
+                let dups = self.enemies.iter().position(|e| pos == e.pos());
                 match dups {
                     Some(v) => {
                         self.enemies.remove(v);

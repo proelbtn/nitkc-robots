@@ -190,7 +190,7 @@ fn main() {
         let mut es: Vec<Box<EnemyTrait>> = new_enemies(p.pos(), size, en);
         let mut status = GameStatus::InProgress();
 
-        let mut g = Robots::new(size, &mut p, &mut es);
+        let mut g = Robots::new(size, p, es);
 
         while g.status() == GameStatus::InProgress() {
             let knum = en - g.remaining_enemy();
