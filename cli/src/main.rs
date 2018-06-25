@@ -10,7 +10,7 @@ struct SimplePlayer {
 }
 
 impl SimplePlayer {
-    fn new(x: u64, y: u64) -> SimplePlayer {
+    fn new(x: usize, y: usize) -> SimplePlayer {
         SimplePlayer { pos: Vec2::new(x, y) }
     }
 }
@@ -62,8 +62,8 @@ impl PlayerTrait for SimplePlayer {
             }
             Operations::Warp() => {
                 loop {
-                    let x = random::<u64>() % size.x;
-                    let y = random::<u64>() % size.y;
+                    let x = random::<usize>() % size.x;
+                    let y = random::<usize>() % size.y;
                     pos = Vec2::new(x, y);
                     for enemy in enemies.iter() {
                         if enemy.pos() == pos { continue; }
@@ -92,7 +92,7 @@ struct SimpleEnemy {
 }
 
 impl SimpleEnemy {
-    fn new(x: u64, y: u64) -> SimpleEnemy {
+    fn new(x: usize, y: usize) -> SimpleEnemy {
         SimpleEnemy { pos: Vec2::new(x, y) }
     }
 }
@@ -101,26 +101,20 @@ impl EnemyTrait for SimpleEnemy {
     fn id(&self) -> u64 { 1 }
     fn pos(&self) -> Vec2 { self.pos }
 
-    fn next(&mut self, size: Vec2, player: &Box<PlayerTrait>, scraps: &Vec<Vec2>) -> Result<(), ()> {
-        let (px, py) = (player.pos().x, player.pos().y);
-        let mut pos = self.pos;
-        let (ex, ey) = (Vec2::new(1, 0), Vec2::new(0, 1));
+    fn next(&mut self, _: Vec2, player: &Box<PlayerTrait>, _: &Vec<Vec2>) -> Result<(), ()> {
+        if player.pos().x < self.pos.x { self.pos -= Vec2::ex(); }
+        if player.pos().x > self.pos.x { self.pos += Vec2::ex(); }
+        if player.pos().y < self.pos.y { self.pos -= Vec2::ey(); }
+        if player.pos().y > self.pos.y { self.pos += Vec2::ey(); }
 
-        if px < self.pos.x { pos = pos - ex; }
-        if px > self.pos.x { pos = pos + ex; }
-        if py < self.pos.y { pos = pos - ey; }
-        if py > self.pos.y { pos = pos + ey; }
-
-        self.pos = pos;
-
-        Ok(())
+        return Ok(());
     }
 }
 
 fn display(g: &Robots) {
     let (width, height) = (g.size().x, g.size().y);
 
-    println!("+{}+", "-".repeat(width as usize));
+    println!("+{}+", "-".repeat(width));
     for y in 0..height {
         print!("|");
         for x in 0..width {
@@ -133,7 +127,7 @@ fn display(g: &Robots) {
         }
         println!("|");
     }
-    println!("+{}+", "-".repeat(width as usize));
+    println!("+{}+", "-".repeat(width));
 }
 
 fn get_operation(prompt: &str) -> Operations {
@@ -141,8 +135,8 @@ fn get_operation(prompt: &str) -> Operations {
         let mut s = String::new();
 
         print!("{}", prompt);
-        std::io::stdout().flush();
-        std::io::stdin().read_line(&mut s);
+        std::io::stdout().flush().expect("");
+        std::io::stdin().read_line(&mut s).expect("");
 
         match s.trim_right_matches("\n") {
             "u" | "2" => return Operations::Up(),
@@ -160,22 +154,27 @@ fn get_operation(prompt: &str) -> Operations {
     }
 }
 
-fn new_enemies(p: Vec2, s: Vec2, n: usize) -> Vec<Box<EnemyTrait>> {
-    let mut v: Vec<Box<EnemyTrait>> = Vec::new();
-    for _ in 0..n {        
-        loop {
-            let x = random::<u64>() % s.x;
-            let y = random::<u64>() % s.y;
-            let pos = Vec2::new(x, y);
-            if p == pos { continue; }
-            for enemy in v.iter() {
-                if enemy.pos() == pos { continue; }
-            }
-            v.push(Box::new(SimpleEnemy::new(x, y))); 
-            break;
+fn create_entities(size: Vec2, num: usize) -> (Box<PlayerTrait>, Vec<Box<EnemyTrait>>) {
+    let px = size.x / 2;
+    let py = size.y / 2;
+
+    let player = Box::new(SimplePlayer::new(px, py));
+
+    let mut enemies = Vec::new() as Vec<Box<EnemyTrait>>;
+
+    for n in 0..num {        
+        while enemies.len() == n {
+            let x = random::<usize>() % size.x;
+            let y = random::<usize>() % size.y;
+
+            if x == player.pos().x && y == player.pos().y { continue; }
+            for enemy in enemies.iter() { if x == enemy.pos().x && y == enemy.pos().y { continue; } }
+
+            enemies.push(Box::new(SimpleEnemy::new(x, y))); 
         }
     }
-    return v;
+
+    return (player, enemies);
 }
 
 
@@ -185,32 +184,27 @@ fn main() {
     let mut point = 0;
 
     loop {
-        let mut p: Box<PlayerTrait> = Box::new(SimplePlayer::new(size.x / 2, size.y / 2));
-        let en = std::cmp::min(5 * level, 40);
-        let mut es: Vec<Box<EnemyTrait>> = new_enemies(p.pos(), size, en);
-        let mut status = GameStatus::InProgress();
+        let num = std::cmp::min(5 * level, 40);
+        let (player, enemies) = create_entities(size, num);
+        let mut game = Robots::new(size, player, enemies);
 
-        let mut g = Robots::new(size, p, es);
-
-        while g.status() == GameStatus::InProgress() {
-            let knum = en - g.remaining_enemy();
-            display(&g);
-            let op = get_operation(&format!("(level:{} score:{}) : ", level, point + knum));
-            g.next(op);
+        while game.status() == GameStatus::InProgress() {
+            display(&game);
+            let prompt = format!("(level:{} score:{}) : ", level, point + game.point());
+            let op = get_operation(&prompt);
+            game.next(op);
         }
 
-        status = g.status();
-
-        match status {
+        match game.status() {
             GameStatus::GameClear() => {
-                point += en + level * 10;
+                point += game.point() + level * 10;
                 level += 1;
             },
             GameStatus::GameOver() => {
-                point += en - g.remaining_enemy();
+                point += game.point();
                 break;
             },
-            _ => panic!("unreachable sequence"),
+            _ => panic!("unreachable!"),
         }
     }
 }
