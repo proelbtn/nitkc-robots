@@ -1,6 +1,7 @@
 use {PlayerTrait, EnemyTrait, Operations, GameStatus, CellStatus, Vec2};
 
 pub struct Robots {
+    lc: usize,
     size: Vec2,
     player: Box<PlayerTrait>,
     enemies: Vec<Box<EnemyTrait>>,
@@ -9,7 +10,7 @@ pub struct Robots {
 
 impl Robots {
     pub fn new(size: Vec2, player: Box<PlayerTrait>, enemies: Vec<Box<EnemyTrait>>) -> Robots {
-        Robots { size, player, enemies, scraps: Vec::new() }
+        Robots { lc: enemies.len(), size, player, enemies, scraps: Vec::new() }
     }
 
     pub fn next(&mut self, op: Operations) -> Result<(), ()> {
@@ -19,7 +20,7 @@ impl Robots {
         }
 
         for n in 0..self.enemies.len() {
-            self.enemies[n].next(self.size, &self.player, &self.scraps);
+            if let Err(v) = self.enemies[n].next(self.size, &self.player, &self.scraps) { return Err(v); }
         }
 
         for n in 0..self.enemies.len() {
@@ -64,10 +65,13 @@ impl Robots {
         for enemy in self.enemies.iter() {
             if self.player.pos() == enemy.pos() { return GameStatus::GameOver(); }
         }
+        for scrap in &self.scraps {
+            if self.player.pos() == *scrap { return GameStatus::GameOver(); }
+        }
         return GameStatus::InProgress();
     }
 
-    pub fn remaining_enemy(&self) -> usize {
-        self.enemies.len()
+    pub fn point(&self) -> usize {
+        self.lc - self.enemies.len()
     }
 }
